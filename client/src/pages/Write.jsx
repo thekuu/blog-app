@@ -3,15 +3,16 @@ import moment from 'moment';
 import React, { useState } from 'react';
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 
 const Write = () => {
     const state = useLocation().state;
+    const navigate = useNavigate();
     const [value, setValue] = useState(state?.desc || '');
     const [title, setTitle] = useState(state?.title ||'');
     const [file, setFile] = useState(null);
     const [cat, setCat] = useState(state?.cat ||'');
-
+    const [error, setError] = useState('');
     const upload = async ()=>{
         try {
             const formData = new FormData();
@@ -25,7 +26,15 @@ const Write = () => {
 
     const handleClick= async e=> {
         e.preventDefault();
-        let imgUrl = file ? await upload() : state.img;
+        setError(
+            title.trim() === '' 
+                ? 'Title is required.' 
+                : (cat === '' 
+                    ? 'Category is required.' 
+                    : '')
+        );
+        if (title.trim() === '' || cat === '') return;
+        let imgUrl = file ? await upload() : (state?.img || '');
     
         try {
             state 
@@ -36,6 +45,7 @@ const Write = () => {
                 title, desc: value, cat, img: imgUrl,
                 date: moment(Date.now()).format("YYYY-MM-DD HH-mm-ss")
             });
+            navigate('/');
         } catch (err) {
             console.log(err);
         }
@@ -72,12 +82,12 @@ const Write = () => {
                         <label htmlFor="art">Art</label>
                     </div>
                     <div className="cat">
-                    <input type="radio" checked ={cat==="science"} name="cat" value="science" id='science' onChange={e=>setCat(e.target.value)}/>
-                    <label htmlFor="science">Science</label>
+                        <input type="radio" checked ={cat==="science"} name="cat" value="science" id='science' onChange={e=>setCat(e.target.value)}/>
+                        <label htmlFor="science">Science</label>
                     </div>
                     <div className="cat">
-                    <input type="radio" checked ={cat==="technology"} name="cat" value="technology" id='technology' onChange={e=>setCat(e.target.value)}/>
-                    <label htmlFor="technology">Technology</label>
+                        <input type="radio" checked ={cat==="technology"} name="cat" value="technology" id='technology' onChange={e=>setCat(e.target.value)}/>
+                        <label htmlFor="technology">Technology</label>
                     </div>
                     <div className="cat">
                         <input type="radio" checked ={cat==="cinema"} name="cat" value="cinema" id='cinema' onChange={e=>setCat(e.target.value)}/>
