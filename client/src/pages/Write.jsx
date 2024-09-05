@@ -13,6 +13,7 @@ const Write = () => {
     const [file, setFile] = useState(null);
     const [cat, setCat] = useState(state?.cat ||'');
     const [error, setError] = useState('');
+    const [isSubmitting, setIsSubmitting] = useState(false);
     const upload = async ()=>{
         try {
             const formData = new FormData();
@@ -24,16 +25,23 @@ const Write = () => {
         }
     }
 
-    const handleClick= async e=> {
+    const handleClick = async e => {
         e.preventDefault();
         setError(
             title.trim() === '' 
                 ? 'Title is required.' 
-                : (cat === '' 
-                    ? 'Category is required.' 
-                    : '')
+                : value.trim() === '' 
+                    ? 'Description is required.' 
+                    : !file && !state?.img
+                        ? 'Image file is required.'
+                        : cat === '' 
+                            ? 'Category is required.' 
+                            : ''
         );
-        if (title.trim() === '' || cat === '') return;
+        if (title.trim() === '' || value.trim() === '' || (!file && !state?.img) || cat === '') return;
+        if (isSubmitting) return;
+        setIsSubmitting(true);
+
         let imgUrl = file ? await upload() : (state?.img || '');
     
         try {
@@ -48,6 +56,8 @@ const Write = () => {
             navigate('/');
         } catch (err) {
             console.log(err);
+        } finally {
+            setIsSubmitting(false);
         }
     }
     
@@ -72,7 +82,7 @@ const Write = () => {
                     <label className="file" htmlFor="file">Upload Image</label>
                     <div className="buttons">
                         <button>save as a draft</button>
-                        <button onClick={handleClick}>Publish</button>
+                        <button onClick={handleClick} disabled={isSubmitting}>{isSubmitting ? 'Publishing...' : 'Publish'}</button>
                     </div>
                 </div>
                 <div className="item">
